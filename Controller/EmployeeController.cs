@@ -19,6 +19,7 @@ public class EmployeeController : ControllerBase
     
     
     // GET: api/employee
+    [HttpGet]
     public async Task<ActionResult<EmployeeDTO>> GetAllEmployees()
     {
         try

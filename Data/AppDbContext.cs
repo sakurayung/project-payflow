@@ -15,7 +15,6 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
 
         // Payroll relationship with Employee one-to-many
         modelBuilder.Entity<Payroll>()
