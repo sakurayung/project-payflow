@@ -1,13 +1,12 @@
-namespace project_payflow_backend.Model;
+namespace project_payflow_backend.DTO;
 
-public class Employee
+public class EmployeeDTO
 {
     public int EmployeeId { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Major { get; set; } = string.Empty;
     public string Degree { get; set; } = string.Empty;
-    public string Name => $"{FirstName} {LastName}";
     public int Units { get; set; }
     public double WorkHours { get; set; }
     public decimal MonthlySalary { get; set; }
