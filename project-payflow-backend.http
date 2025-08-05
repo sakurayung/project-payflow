@@ -1,0 +1,6 @@
+@project_payflow_backend_HostAddress = http://localhost:5108
+
+GET {{project_payflow_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
