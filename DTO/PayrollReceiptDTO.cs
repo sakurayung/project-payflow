@@ -1,20 +1,13 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System;
 
-namespace project_payflow_backend.Model;
+namespace project_payflow_backend.DTO;
 
-public class PayrollReceipt
+public class PayrollReceiptDTO
 {
-    [Key]
     public int ReceiptId { get; set; }
     public int PayrollId { get; set; }
-    [ForeignKey("PayrollId")]
-    public Payroll Payroll { get; set; } = null!;
     public DateTime GeneratedDate { get; set; }
     public string ReceiptNumber { get; set; } = string.Empty;
-
     public string ReceiptJson { get; set; } = string.Empty;
-    
-    // Optional: URL to download the receipt
     public string PrintableReceiptUrl { get; set; } = string.Empty;
 }

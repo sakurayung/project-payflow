@@ -1,15 +1,11 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System;
 
-namespace project_payflow_backend.Model;
+namespace project_payflow_backend.DTO;
 
-public class Payroll
+public class PayrollDTO
 {
-    [Key]
     public int PayrollId { get; set; }
     public int EmployeeId { get; set; }
-    [ForeignKey("EmployeeId")]
-    public Employee Employee { get; set; } = null!;
     public DateTime PayPeriodStart { get; set; }
     public DateTime PayPeriodEnd { get; set; }
     public DateTime PaymentDate { get; set; }
@@ -29,11 +25,9 @@ public class Payroll
     public int OverloadUnits { get; set; }
     public decimal OverloadAmount { get; set; }
     
-    // Split payments
-    public decimal FirstHalfPay { get; set; } // 15th
-    public decimal SecondHalfPay { get; set; } // 30th
+    public decimal FirstHalfPay { get; set; }
+    public decimal SecondHalfPay { get; set; }
     
-    // Totals
     public decimal GrossPay { get; set; }
     public decimal TotalDeductions { get; set; }
     public decimal NetPay { get; set; }

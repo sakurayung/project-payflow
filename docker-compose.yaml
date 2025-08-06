@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Port=3306;Database=payflow;User=root;Password=payflowpassword
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=payflow
+      - MYSQL_ROOT_PASSWORD=payflowpassword
+      - MYSQL_USER=payflow_user
+      - MYSQL_PASSWORD=payflowpassword
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
