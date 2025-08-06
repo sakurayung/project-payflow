@@ -1,25 +1,80 @@
 import React, { useState, useMemo } from "react";
 import { useForm } from "@tanstack/react-form";
-import type { Employee } from "@/lib/types";
 import { createFileRoute } from "@tanstack/react-router";
-import { Input } from "@/components/ui/input";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { v4 as uuidv4 } from "uuid";
-
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
+import { employeeApi } from "@/api/employee/route";
+import type { EmployeeDTO, EmployeeFormValues } from "@/types";
+import type { Employee } from "@/types";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { z } from "zod";
+import { v4 as uuidv4 } from "uuid";
 
 export const Route = createFileRoute("/employees-records")({
-  component: RouteComponent,
+  component: EmployeesPage,
 });
 
-function RouteComponent() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
+function EmployeesPage() {
+  // const [employees, setEmployees] = useState<Employee[]>([]);
+  const [editingEmployee, setEditingEmployee] = useState<EmployeeDTO | null>(
+    null
+  );
+
+  // FETCH EMPLOYEES FROM API
+  const {
+    data: employees,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["employees"],
+    queryFn: employeeApi.getAll,
+  });
+
+  // CREATE QUERY CLIENT
+  const queryClient = useQueryClient();
+
+  // CREATE EMPLOYEE MUTATION
+  const createEmployeeMutation = useMutation({
+    mutationFn: employeeApi.createEmployee,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      setEditingEmployee(null);
+    },
+  });
+
+  // UPDATE EMPLOYEE MUTATION
+  const updateEmployeeMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Partial<EmployeeFormValues>;
+    }) => employeeApi.updateEmployee(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      setEditingEmployee(null);
+    },
+  });
+
+  // DELETE CUSTOMER MUTATION
+  const deleteEmployeeMutation = useMutation({
+    mutationFn: employeeApi.deleteEmployee,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+    },
+  });
 
   const columnHelper = createColumnHelper<Employee>();
 
@@ -45,7 +100,7 @@ function RouteComponent() {
         cell: (info) => info.getValue(),
         size: 120,
       }),
-      columnHelper.accessor("workTime", {
+      columnHelper.accessor("workHours", {
         header: "Work Time",
         cell: (info) => info.getValue(),
         size: 120,
@@ -69,44 +124,35 @@ function RouteComponent() {
     []
   );
 
+  // Use employees from TanStack Query, fallback to empty array if undefined
   const table = useReactTable({
-    data: employees,
+    data: employees ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
   const defaultEmployee: Employee = {
-    id: "",
     employeeName: "",
     major: "",
     degree: "",
     units: 0,
-    workTime: "",
+    workHours: 0,
     monthlySalary: 0,
   };
 
   const form = useForm({
     defaultValues: defaultEmployee,
     onSubmit: async ({ value }: { value: Employee }) => {
-      const newEmployee: Employee = {
-        ...value,
-        id: uuidv4(),
-      };
-      setEmployees((prev) => {
-        const updated = [...prev, newEmployee];
-        // FOR DEBUGGING
-        console.log("Employees:", updated);
-        return updated;
-      });
+      // You should call createEmployeeMutation.mutateAsync(value) here if you want to create via API
       form.reset();
     },
     validators: {
       onChange: z.object({
-        employeeName: z.string().min(10),
+        employeeName: z.string().min(3),
         major: z.string().min(3),
-        degree: z.string().min(4),
+        degree: z.string().min(2),
         units: z.number().nonnegative(),
-        workTime: z.string().min(8),
+        workHours: z.number().nonnegative(),
         monthlySalary: z.number().nonnegative(),
       }),
     },
@@ -120,6 +166,7 @@ function RouteComponent() {
           form.handleSubmit();
         }}
       >
+        {/* ...existing form fields... */}
         <form.Field
           name="employeeName"
           children={(field) => (
@@ -133,9 +180,9 @@ function RouteComponent() {
                 onChange={(e) => field.handleChange(e.target.value)}
                 className="w-[200px]"
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-red-500">
-                  {error?.message}
+              {field.state.meta.errors.map((error, i) => (
+                <p key={i} className="text-red-500">
+                  {typeof error === "string" ? error : JSON.stringify(error)}
                 </p>
               ))}
             </div>
@@ -154,9 +201,9 @@ function RouteComponent() {
                 onChange={(e) => field.handleChange(e.target.value)}
                 className="w-[200px]"
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-red-500">
-                  {error?.message}
+              {field.state.meta.errors.map((error, i) => (
+                <p key={i} className="text-red-500">
+                  {typeof error === "string" ? error : JSON.stringify(error)}
                 </p>
               ))}
             </div>
@@ -175,9 +222,9 @@ function RouteComponent() {
                 onChange={(e) => field.handleChange(e.target.value)}
                 className="w-[200px]"
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-red-500">
-                  {error?.message}
+              {field.state.meta.errors.map((error, i) => (
+                <p key={i} className="text-red-500">
+                  {typeof error === "string" ? error : JSON.stringify(error)}
                 </p>
               ))}
             </div>
@@ -196,16 +243,16 @@ function RouteComponent() {
                 onChange={(e) => field.handleChange(Number(e.target.value))}
                 className="w-[200px]"
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-red-500">
-                  {error?.message}
+              {field.state.meta.errors.map((error, i) => (
+                <p key={i} className="text-red-500">
+                  {typeof error === "string" ? error : JSON.stringify(error)}
                 </p>
               ))}
             </div>
           )}
         />
         <form.Field
-          name="workTime"
+          name="workHours"
           children={(field) => (
             <div className="flex flex-row gap-2 items-center">
               <label htmlFor={field.name}>Work Time</label>
@@ -214,12 +261,12 @@ function RouteComponent() {
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
-                onChange={(e) => field.handleChange(e.target.value)}
+                onChange={(e) => field.handleChange(Number(e.target.value))}
                 className="w-[200px]"
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-red-500">
-                  {error?.message}
+              {field.state.meta.errors.map((error, i) => (
+                <p key={i} className="text-red-500">
+                  {typeof error === "string" ? error : JSON.stringify(error)}
                 </p>
               ))}
             </div>
@@ -238,9 +285,9 @@ function RouteComponent() {
                 onChange={(e) => field.handleChange(Number(e.target.value))}
                 className="w-[200px]"
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-red-500">
-                  {error?.message}
+              {field.state.meta.errors.map((error, i) => (
+                <p key={i} className="text-red-500">
+                  {typeof error === "string" ? error : JSON.stringify(error)}
                 </p>
               ))}
             </div>
@@ -250,61 +297,81 @@ function RouteComponent() {
       </form>
 
       <div className="mt-8 bg-white rounded-xl overflow-hidden shadow-lg">
-        <table className="w-full">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                Employee's ID
-              </th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                Employee's Name
-              </th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                Major
-              </th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                Degree
-              </th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                Work Time
-              </th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                Units
-              </th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                Monthly
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {employees.map((employee: Employee, index: number) => (
-              <tr
-                key={employee.id}
-                className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
-              >
-                <td className="px-4 py-3 text-gray-800">{employee.id}</td>
-                <td className="px-4 py-3 text-gray-800">
-                  {employee.employeeName}
-                </td>
-                <td className="px-4 py-3 text-gray-800">{employee.major}</td>
-                <td className="px-4 py-3 text-gray-800">{employee.degree}</td>
-                <td className="px-4 py-3 text-gray-800">{employee.workTime}</td>
-                <td className="px-4 py-3 text-gray-800">{employee.units}</td>
-                <td className="px-4 py-3 text-gray-800">
-                  {employee.monthlySalary}
-                </td>
-              </tr>
-            ))}
-            {employees.length === 0 && (
+        {isLoading ? (
+          <div className="p-8 text-center text-gray-500">Loading...</div>
+        ) : error ? (
+          <div className="p-8 text-center text-red-500">
+            Error loading employees.
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead className="bg-gray-200">
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                  No employees added yet. Add your first employee using the form
-                  above.
-                </td>
+                <th className="px-4 py-3 text-left font-semibold text-gray-800">
+                  Employee's ID
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-800">
+                  Employee's Name
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-800">
+                  Major
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-800">
+                  Degree
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-800">
+                  Work Time
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-800">
+                  Units
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-800">
+                  Monthly
+                </th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {(employees ?? []).length > 0 ? (
+                (employees ?? []).map((employee: Employee, index: number) => (
+                  <tr
+                    key={employee.id ?? index}
+                    className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                  >
+                    <td className="px-4 py-3 text-gray-800">{employee.id}</td>
+                    <td className="px-4 py-3 text-gray-800">
+                      {employee.employeeName}
+                    </td>
+                    <td className="px-4 py-3 text-gray-800">
+                      {employee.major}
+                    </td>
+                    <td className="px-4 py-3 text-gray-800">
+                      {employee.degree}
+                    </td>
+                    <td className="px-4 py-3 text-gray-800">
+                      {employee.workHours}
+                    </td>
+                    <td className="px-4 py-3 text-gray-800">
+                      {employee.units}
+                    </td>
+                    <td className="px-4 py-3 text-gray-800">
+                      {employee.monthlySalary}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-8 text-center text-gray-500"
+                  >
+                    No employees added yet. Add your first employee using the
+                    form above.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

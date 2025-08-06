@@ -14,6 +14,8 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 export interface RouterAppContext {}
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
@@ -42,8 +44,17 @@ function RootComponent() {
     select: (s) => s.isLoading,
   });
 
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
+
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <HeadContent />
       <ThemeProvider
         attribute="class"
@@ -62,6 +73,6 @@ function RootComponent() {
         <Toaster richColors />
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />
-    </>
+    </QueryClientProvider>
   );
 }
