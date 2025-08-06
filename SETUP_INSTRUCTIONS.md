@@ -138,6 +138,110 @@ If you're using the included React frontend in the `project-payflow-frontend` di
    ```
    This will start the frontend on `http://localhost:5173` which is already configured in CORS settings in the backend.
 
+## Using Docker Compose (Alternative Setup)
+
+You can also run the Project PayFlow application using Docker Compose, which simplifies the setup process by containerizing both the application and its dependencies.
+
+### Prerequisites
+
+- [Docker](https://www.docker.com/products/docker-desktop/) (latest version)
+- [Docker Compose](https://docs.docker.com/compose/install/) (included with Docker Desktop)
+
+### Step 1: Build and Run with Docker Compose
+
+1. **Open a Terminal/Command Prompt**:
+   - Navigate to the project directory:
+     ```bash
+     cd path/to/project-payflow
+     ```
+
+2. **Start the Application Stack**:
+   - Run the following command to build and start all services:
+     ```bash
+     docker-compose up -d
+     ```
+   - The `-d` flag runs containers in detached mode (background).
+   - This will:
+     - Build the .NET application from source
+     - Start a MySQL database container
+     - Start a phpMyAdmin container for database management
+     - Set up networking between containers
+     - Apply environment configurations
+
+3. **Access the Services**:
+   - Access the API and Swagger UI: http://localhost:8080/swagger
+   - Access phpMyAdmin: http://localhost:8081 (login with username: root, password: payflowpassword)
+
+### Step 2: Managing the Application
+
+1. **View Application Logs**:
+   - To see the logs from the application:
+     ```bash
+     docker-compose logs app
+     ```
+   - To follow the logs in real-time:
+     ```bash
+     docker-compose logs -f app
+     ```
+
+2. **Stop the Application**:
+   - To stop all containers:
+     ```bash
+     docker-compose down
+     ```
+   - To stop and remove all containers, networks, and volumes:
+     ```bash
+     docker-compose down -v
+     ```
+
+3. **Rebuild After Code Changes**:
+   - After making changes to your code:
+     ```bash
+     docker-compose build app
+     docker-compose up -d
+     ```
+
+### Step 3: Database Migrations in Docker
+
+1. **Run Migrations Inside the Container**:
+   - To apply migrations inside the Docker container:
+     ```bash
+     docker-compose exec app dotnet ef database update
+     ```
+
+2. **Create a New Migration**:
+   - After changing your model classes:
+     ```bash
+     docker-compose exec app dotnet ef migrations add [MigrationName]
+     ```
+
+3. **Remove a Migration**:
+   - If you need to revert a migration:
+     ```bash
+     docker-compose exec app dotnet ef migrations remove
+     ```
+
+### Troubleshooting Docker Setup
+
+1. **Connection Issues**:
+   - If the app can't connect to the database, make sure the database container is running:
+     ```bash
+     docker-compose ps db
+     ```
+
+2. **Container Errors**:
+   - Check container logs for specific errors:
+     ```bash
+     docker-compose logs db
+     ```
+
+3. **Recreate Containers**:
+   - If you encounter persistent issues, try rebuilding from scratch:
+     ```bash
+     docker-compose down -v
+     docker-compose up -d --build
+     ```
+
 ## Troubleshooting
 
 ### Database Connection Issues
