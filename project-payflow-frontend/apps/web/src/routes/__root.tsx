@@ -10,7 +10,8 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import "../index.css";
 
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ModeToggle } from "@/components/mode-toggle";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 
 export interface RouterAppContext {}
@@ -52,7 +53,10 @@ function RootComponent() {
         <div>
           <SidebarProvider>
             <AppSidebar />
-            <main>{isFetching ? <Loader /> : <Outlet />}</main>
+            <main className="w-full">
+              {isFetching ? <Loader /> : <Outlet />}
+            </main>
+            <ModeToggle />
           </SidebarProvider>
         </div>
         <Toaster richColors />
