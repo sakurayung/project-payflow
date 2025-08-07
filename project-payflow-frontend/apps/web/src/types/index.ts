@@ -1,5 +1,5 @@
 export interface Employee {
-  id?: string;
+  employeeId: number;
   major: string;
   degree: string;
   employeeName?: string;
@@ -11,7 +11,7 @@ export interface Employee {
 }
 
 export interface EmployeeDTO extends Employee {
-  id?: string;
+  employeeId: number;
   major: string;
   degree: string;
   employeeName?: string;
