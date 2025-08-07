@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace project_payflow_backend.Model;
 
@@ -13,6 +14,7 @@ public class Employee
     public string Name => $"{FirstName} {LastName}";
     public int Units { get; set; }
     public double WorkHours { get; set; }
+    [Column(TypeName = "decimal(10,2)")]
     public decimal MonthlySalary { get; set; }
     public bool IsActive { get; set; }
 }
