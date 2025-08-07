@@ -68,6 +68,55 @@ public class UserController : ControllerBase
             throw new Exception("An error occurred while processing the login request.", ex);
         }
     }
+
+    [HttpPost("register")]
+    public async Task<ActionResult<AuthDTO.RegisterResponse>> Register(AuthDTO.RegisterRequest request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
+        try
+        {
+            var existingUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Username == request.Username);
+            
+            var errors = new List<string>();
+            
+            if (existingUser != null)
+            {
+                errors.Add("Username already exists.");
+            }
+
+            if (request.Password != request.ConfirmPassword)
+            {
+               throw new ArgumentException("Passwords do not match.");
+            }
+            
+            if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+                errors.Add("Username and password cannot be empty.");
+            
+            var user = new User
+            {
+                Username = request.Username,
+                Password = request.Password,
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+
+            return Ok(new AuthDTO.RegisterResponse
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Message = "Registration successful."
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
     
     private string GenerateJwtToken(User user)
     {

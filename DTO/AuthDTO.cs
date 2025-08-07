@@ -19,6 +19,7 @@ public class AuthDTO
     
     public class RegisterRequest
     {
+        public int UserId { get; set; }
         [Required] public string Username { get; set; } = string.Empty;
         [Required] [MinLength(6)] public string Password { get; set; } = string.Empty;
         [Required] public string ConfirmPassword { get; set; } = string.Empty;
