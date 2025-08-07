@@ -26,25 +26,23 @@ export const Route = createFileRoute("/employees-records")({
 });
 
 function EmployeesPage() {
-  // const [employees, setEmployees] = useState<Employee[]>([]);
   const [editingEmployee, setEditingEmployee] = useState<EmployeeDTO | null>(
     null
   );
 
   // FETCH EMPLOYEES FROM API
- const {
-  data: employees,
-  isLoading,
-  error,
-} = useQuery({
-  queryKey: ["employees"],
-  queryFn: async () => {
-    const result = await employeeApi.getAll();
-    console.log("API Response:", result); // Add this to see the actual data
-    return result;
-  },
-});
-  
+  const {
+    data: employees,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["employees"],
+    queryFn: async () => {
+      const result = await employeeApi.getAll();
+      console.log("API Response:", result); // Add this to see the actual data
+      return result;
+    },
+  });
 
   // CREATE QUERY CLIENT
   const queryClient = useQueryClient();
@@ -81,7 +79,6 @@ function EmployeesPage() {
     },
   });
 
-
   const columnHelper = createColumnHelper<Employee>();
 
   const columns = useMemo(
@@ -96,16 +93,17 @@ function EmployeesPage() {
         cell: (info) => info.getValue(),
         size: 150,
       }),
-      columnHelper.accessor("major", {
-        header: "Major",
-        cell: (info) => info.getValue(),
-        size: 120,
-      }),
       columnHelper.accessor("degree", {
         header: "Degree",
         cell: (info) => info.getValue(),
         size: 120,
       }),
+      columnHelper.accessor("major", {
+        header: "Major",
+        cell: (info) => info.getValue(),
+        size: 120,
+      }),
+
       columnHelper.accessor("workHours", {
         header: "Work Time",
         cell: (info) => info.getValue(),
@@ -137,9 +135,10 @@ function EmployeesPage() {
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
-  
+
   const defaultEmployee: Employee = {
-    employeeName: "",
+    firstName: "",
+    lastName: "",
     major: "",
     degree: "",
     units: 0,
@@ -162,13 +161,21 @@ function EmployeesPage() {
     },
     validators: {
       onChange: z.object({
-        employeeId: z.number().nonnegative(),
-        employeeName: z.string().min(3),
-        major: z.string().min(3),
-        degree: z.string().min(2),
-        units: z.number().nonnegative(),
-        workHours: z.number().nonnegative(),
-        monthlySalary: z.number().nonnegative(),
+        employeeId: z.number().nonnegative(),   
+        firstName: z
+          .string()
+          .min(3, "First name must be at least 3 characters."),
+        lastName: z
+          .string()
+          .min(3, "First name must be at least 3 characters."),
+        degree: z.string().min(2, "Must be a valid degree."),
+        major: z.string().min(3, "Must be a valid major."),
+        units: z.number().nonnegative("Units should not go lower than zero."),
+        workHours: z
+          .number()
+          .nonnegative("Hours to work should not go lower than zero."),
+        monthlySalary: z.number().nonnegative("Salary is always positive!"),
+
       }),
     },
   });
@@ -182,10 +189,10 @@ function EmployeesPage() {
         }}
       >
         <form.Field
-          name="employeeName"
+          name="firstName"
           children={(field) => (
             <div className="flex flex-row gap-2 items-center">
-              <label htmlFor={field.name}>Employee's Name</label>
+              <label htmlFor={field.name}>First Name</label>
               <Input
                 id={field.name}
                 name={field.name}
@@ -195,19 +202,18 @@ function EmployeesPage() {
                 className="w-[200px]"
               />
               {field.state.meta.errors.map((error, i) => (
-                <p key={i} className="text-red-500">
-                  {typeof error === "string" ? error : JSON.stringify(error)}
-
+                <p key={error?.message} className="text-red-500">
+                  {error?.message}
                 </p>
               ))}
             </div>
           )}
         />
         <form.Field
-          name="major"
+          name="lastName"
           children={(field) => (
             <div className="flex flex-row gap-2 items-center">
-              <label htmlFor={field.name}>Major</label>
+              <label htmlFor={field.name}>Last Name</label>
               <Input
                 id={field.name}
                 name={field.name}
@@ -217,9 +223,8 @@ function EmployeesPage() {
                 className="w-[200px]"
               />
               {field.state.meta.errors.map((error, i) => (
-                <p key={i} className="text-red-500">
-                  {typeof error === "string" ? error : JSON.stringify(error)}
-
+                <p key={error?.message} className="text-red-500">
+                  {error?.message}
                 </p>
               ))}
             </div>
@@ -239,14 +244,35 @@ function EmployeesPage() {
                 className="w-[200px]"
               />
               {field.state.meta.errors.map((error, i) => (
-                <p key={i} className="text-red-500">
-                  {typeof error === "string" ? error : JSON.stringify(error)}
-
+                <p key={error?.message} className="text-red-500">
+                  {error?.message}
                 </p>
               ))}
             </div>
           )}
         />
+        <form.Field
+          name="major"
+          children={(field) => (
+            <div className="flex flex-row gap-2 items-center">
+              <label htmlFor={field.name}>Major</label>
+              <Input
+                id={field.name}
+                name={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                className="w-[200px]"
+              />
+              {field.state.meta.errors.map((error, i) => (
+                <p key={error?.message} className="text-red-500">
+                  {error?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        />
+
         <form.Field
           name="units"
           children={(field) => (
@@ -261,17 +287,15 @@ function EmployeesPage() {
                 className="w-[200px]"
               />
               {field.state.meta.errors.map((error, i) => (
-                <p key={i} className="text-red-500">
-                  {typeof error === "string" ? error : JSON.stringify(error)}
+                <p key={error?.message} className="text-red-500">
+                  {error?.message}
                 </p>
               ))}
             </div>
           )}
         />
         <form.Field
-
           name="workHours"
-
           children={(field) => (
             <div className="flex flex-row gap-2 items-center">
               <label htmlFor={field.name}>Work Time</label>
@@ -284,8 +308,8 @@ function EmployeesPage() {
                 className="w-[200px]"
               />
               {field.state.meta.errors.map((error, i) => (
-                <p key={i} className="text-red-500">
-                  {typeof error === "string" ? error : JSON.stringify(error)}
+                <p key={error?.message} className="text-red-500">
+                  {error?.message}
                 </p>
               ))}
             </div>
@@ -305,14 +329,14 @@ function EmployeesPage() {
                 className="w-[200px]"
               />
               {field.state.meta.errors.map((error, i) => (
-                <p key={i} className="text-red-500">
-                  {typeof error === "string" ? error : JSON.stringify(error)}
+                <p key={error?.message} className="text-red-500">
+                  {error?.message}
                 </p>
               ))}
             </div>
           )}
         />
-        <Button>Submit</Button>
+        <Button>Add Employee</Button>
       </form>
 
       <div className="mt-8 bg-white rounded-xl overflow-hidden shadow-lg">
@@ -333,11 +357,12 @@ function EmployeesPage() {
                   Employee's Name
                 </th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-800">
-                  Major
-                </th>
-                <th className="px-4 py-3 text-left font-semibold text-gray-800">
                   Degree
                 </th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-800">
+                  Major
+                </th>
+
                 <th className="px-4 py-3 text-left font-semibold text-gray-800">
                   Work Time
                 </th>
@@ -359,14 +384,15 @@ function EmployeesPage() {
                     <td className="px-4 py-3 text-gray-800">{employee.employeeId}
                     </td>
                     <td className="px-4 py-3 text-gray-800">
-                      {employee.employeeName}
-                    </td>
-                    <td className="px-4 py-3 text-gray-800">
-                      {employee.major}
+                      {employee.firstName} {employee.lastName}
                     </td>
                     <td className="px-4 py-3 text-gray-800">
                       {employee.degree}
                     </td>
+                    <td className="px-4 py-3 text-gray-800">
+                      {employee.major}
+                    </td>
+
                     <td className="px-4 py-3 text-gray-800">
                       {employee.workHours}
                     </td>
@@ -392,7 +418,6 @@ function EmployeesPage() {
             </tbody>
           </table>
         )}
-
       </div>
     </div>
   );
