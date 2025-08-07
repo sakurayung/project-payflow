@@ -44,6 +44,7 @@ function RootComponent() {
     select: (s) => s.isLoading,
   });
 
+
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {

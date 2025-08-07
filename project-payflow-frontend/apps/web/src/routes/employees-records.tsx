@@ -76,6 +76,7 @@ function EmployeesPage() {
     },
   });
 
+
   const columnHelper = createColumnHelper<Employee>();
 
   const columns = useMemo(
@@ -127,6 +128,7 @@ function EmployeesPage() {
   // Use employees from TanStack Query, fallback to empty array if undefined
   const table = useReactTable({
     data: employees ?? [],
+
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -166,7 +168,6 @@ function EmployeesPage() {
           form.handleSubmit();
         }}
       >
-        {/* ...existing form fields... */}
         <form.Field
           name="employeeName"
           children={(field) => (
@@ -183,6 +184,7 @@ function EmployeesPage() {
               {field.state.meta.errors.map((error, i) => (
                 <p key={i} className="text-red-500">
                   {typeof error === "string" ? error : JSON.stringify(error)}
+
                 </p>
               ))}
             </div>
@@ -204,6 +206,7 @@ function EmployeesPage() {
               {field.state.meta.errors.map((error, i) => (
                 <p key={i} className="text-red-500">
                   {typeof error === "string" ? error : JSON.stringify(error)}
+
                 </p>
               ))}
             </div>
@@ -225,6 +228,7 @@ function EmployeesPage() {
               {field.state.meta.errors.map((error, i) => (
                 <p key={i} className="text-red-500">
                   {typeof error === "string" ? error : JSON.stringify(error)}
+
                 </p>
               ))}
             </div>
@@ -252,7 +256,9 @@ function EmployeesPage() {
           )}
         />
         <form.Field
+
           name="workHours"
+
           children={(field) => (
             <div className="flex flex-row gap-2 items-center">
               <label htmlFor={field.name}>Work Time</label>
@@ -372,6 +378,7 @@ function EmployeesPage() {
             </tbody>
           </table>
         )}
+
       </div>
     </div>
   );
