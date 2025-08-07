@@ -7,8 +7,7 @@ public class PayrollReceipt
 {
     [Key]
     public int ReceiptId { get; set; }
-    public int PayrollId { get; set; }
-    [ForeignKey("PayrollId")]
+    public Guid PayrollId { get; set; }
     public Payroll Payroll { get; set; } = null!;
     public DateTime GeneratedDate { get; set; }
     public string ReceiptNumber { get; set; } = string.Empty;
